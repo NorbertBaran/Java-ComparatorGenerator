@@ -6,10 +6,10 @@ public class Librarian {
         int exitCode = 0;
 
         var comparator=new SecretDataComparator();
-        /*exitCode = returnsZeroForIdenticalData(exitCode);
+        exitCode = returnsZeroForIdenticalData(exitCode);
         exitCode = returnsMinusOneForFirstFieldDifferent(exitCode);
         exitCode = returnsMinusOneForNotAnnotatedFieldDifferent(exitCode);
-        exitCode = prefersComparePriorityOverOrdering(exitCode);*/
+        exitCode = prefersComparePriorityOverOrdering(exitCode);
         System.exit(exitCode);
     }
 

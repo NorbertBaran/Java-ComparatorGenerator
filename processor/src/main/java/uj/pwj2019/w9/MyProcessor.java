@@ -5,33 +5,104 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.TypeElement;
-import javax.tools.*;
-import java.io.File;
+import javax.lang.model.element.*;
+import javax.lang.model.util.ElementFilter;
+import javax.tools.Diagnostic;
+import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Writer;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 @SupportedAnnotationTypes({"uj.pwj2019.w9.MyComparable", "uj.pwj2019.w9.ComparePriority"})
 public class MyProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        for (TypeElement annotation : annotations) {
+        var myComparable=ElementFilter.typesIn(roundEnv.getElementsAnnotatedWith(MyComparable.class));
+        for(TypeElement annotationedElement: myComparable){
+            String packageName = ((PackageElement) annotationedElement.getEnclosingElement()).getQualifiedName().toString();
+            String className = annotationedElement.getSimpleName().toString();
+            List<? extends Element> fields = processingEnv.getElementUtils().getAllMembers(annotationedElement);
+
+            String fieldsCompare="";
+            ArrayList<Pair<Integer, String>> listCompare=new ArrayList();
+
+            for(var field: fields){
+                if(field.getKind()== ElementKind.FIELD && field.getModifiers().contains(Modifier.PUBLIC)){
+                    if(
+                            !(field.asType().toString().equals("boolean") ||
+                                field.asType().toString().equals("int") ||
+                                field.asType().toString().equals("char") ||
+                                field.asType().toString().equals("float") ||
+                                field.asType().toString().equals("long") ||
+                                field.asType().toString().equals("double") ||
+                                field.asType().toString().equals("byte") ||
+                                field.asType().toString().equals("short")
+                            )
+                    ){
+                        continue;
+                    }
+
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Name: " + field.getSimpleName());
+
+                    String fieldCompare="           if(data1."+field.getSimpleName()+"!=data2."+field.getSimpleName()+"){\n" +
+                            "               return -1;\n" +
+                            "           }\n";
+
+
+                    if(field.getAnnotation(ComparePriority.class)==null){
+                        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Val: null");
+                        Pair<Integer, String> pairComparator=new Pair<>(Integer.MAX_VALUE, fieldCompare);
+                        listCompare.add(pairComparator);
+                    }else{
+                        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Val: "+field.getAnnotation(ComparePriority.class).value());
+                        Pair<Integer, String> pairComparator=new Pair<>(field.getAnnotation(ComparePriority.class).value(), fieldCompare);
+                        listCompare.add(pairComparator);
+                    }
+                    //fieldsCompare+=fieldCompare;
+                }
+            }
+            listCompare.sort(Comparator.comparingInt(Pair::getKey));
+            for(var listCompareElement: listCompare){
+                fieldsCompare+=listCompareElement.getValue();
+            }
+
+            try {
+
+                JavaFileObject file = processingEnv.getFiler().createSourceFile(className + "Comparator");
+                try (PrintWriter out = new PrintWriter(file.openWriter())) {
+
+                    String comparator="package "+packageName+";\n" +
+                            "\n" +
+                            "public class "+className+"Comparator {\n" +
+                            "\n" +
+                            "    public int compare("+className+" data1, "+className+" data2) {\n"
+                                    +fieldsCompare+
+                            "        return 0;\n" +
+                            "    }\n" +
+                            "}\n";
+
+                    out.write(comparator);
+
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+
+
+        }
+
+
+        /*for (TypeElement annotation : annotations) {
             Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
             processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Processing " + annotation);
             processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Processing " + annotatedElements);
             if(annotation.toString().equals("uj.pwj2019.w9.MyComparable"))
                 annotatedElements.forEach(this::processElement);
-        }
+        }*/
         return true;
     }
 

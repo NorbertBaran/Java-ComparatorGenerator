@@ -11,6 +11,5 @@ import java.lang.annotation.Target;
  * For ordering fields, use {@link uj.pwj2019.w9.ComparePriority} annotation.
  */
 @Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
 public @interface MyComparable {
 }
