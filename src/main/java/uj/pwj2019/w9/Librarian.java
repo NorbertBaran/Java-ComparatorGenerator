@@ -4,10 +4,12 @@ public class Librarian {
 
     public static void main(String[] args) {
         int exitCode = 0;
-        exitCode = returnsZeroForIdenticalData(exitCode);
+
+        var comparator=new SecretDataComparator();
+        /*exitCode = returnsZeroForIdenticalData(exitCode);
         exitCode = returnsMinusOneForFirstFieldDifferent(exitCode);
         exitCode = returnsMinusOneForNotAnnotatedFieldDifferent(exitCode);
-        exitCode = prefersComparePriorityOverOrdering(exitCode);
+        exitCode = prefersComparePriorityOverOrdering(exitCode);*/
         System.exit(exitCode);
     }
 

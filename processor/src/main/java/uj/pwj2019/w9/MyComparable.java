@@ -1,6 +1,8 @@
 package uj.pwj2019.w9;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
@@ -9,5 +11,6 @@ import java.lang.annotation.Target;
  * For ordering fields, use {@link uj.pwj2019.w9.ComparePriority} annotation.
  */
 @Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface MyComparable {
 }
